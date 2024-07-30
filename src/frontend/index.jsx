@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef  } from 'react';
 import ForgeReconciler, { Textfield, Text, SectionMessage, DatePicker , useConfig, RadioGroup, Stack, xcss, Box, Heading, Checkbox, Inline } from '@forge/react';
 import { view } from '@forge/bridge';
 import  colorMap  from './colors';
@@ -36,7 +36,6 @@ const App = () => {
   const [context, setContext] = useState(undefined);
   const [currentUser, setCurrentUser] = useState(undefined);
   const config = useConfig() || defaultConfig;
-
   const [choices, setChoices] = useState([
     { id: 0, checkbox: {name: 'Checkbox0', isChecked: false}, question: ''},
     { id: 1, checkbox: {name: 'Checkbox1', isChecked: false}, question: ''},
@@ -49,10 +48,7 @@ const App = () => {
     { id: 8, checkbox: {name: 'Checkbox8', isChecked: false}, question: ''},
     { id: 9, checkbox: {name: 'Checkbox9', isChecked: false}, question: ''}
   ]);
-  
-  useEffect(() => {
-    view.getContext().then(setContext);
-  }, [view]);
+  const isCompMounted = useRef(false);
 
   useEffect(() => {
     view.getContext().then(setContext);
@@ -61,35 +57,44 @@ const App = () => {
 
   useEffect(() => {
     if(context !== undefined && currentUser !== undefined) {
-      console.log(currentUser);
-      setChoices(_ => [
-        { id: 0, checkbox: {name: 'Checkbox0', isChecked: false}, question: config.question_0},
-        { id: 1, checkbox: {name: 'Checkbox1', isChecked: false}, question: config.question_1},
-        { id: 2, checkbox: {name: 'Checkbox2', isChecked: false}, question: config.question_2},
-        { id: 3, checkbox: {name: 'Checkbox3', isChecked: false}, question: config.question_3},
-        { id: 4, checkbox: {name: 'Checkbox4', isChecked: false}, question: config.question_4},
-        { id: 5, checkbox: {name: 'Checkbox5', isChecked: false}, question: config.question_5},
-        { id: 6, checkbox: {name: 'Checkbox6', isChecked: false}, question: config.question_6},
-        { id: 7, checkbox: {name: 'Checkbox7', isChecked: false}, question: config.question_7},
-        { id: 8, checkbox: {name: 'Checkbox8', isChecked: false}, question: config.question_8},
-        { id: 9, checkbox: {name: 'Checkbox9', isChecked: false}, question: config.question_9}
-      ])
+      invoke('getUserOutputs').then(userChoices => {
+        setChoices(_ => [
+          { id: 0, checkbox: {name: 'Checkbox0', isChecked: userChoices.includes(0)}, question: config.question_0},
+          { id: 1, checkbox: {name: 'Checkbox1', isChecked: userChoices.includes(1)}, question: config.question_1},
+          { id: 2, checkbox: {name: 'Checkbox2', isChecked: userChoices.includes(2)}, question: config.question_2},
+          { id: 3, checkbox: {name: 'Checkbox3', isChecked: userChoices.includes(3)}, question: config.question_3},
+          { id: 4, checkbox: {name: 'Checkbox4', isChecked: userChoices.includes(4)}, question: config.question_4},
+          { id: 5, checkbox: {name: 'Checkbox5', isChecked: userChoices.includes(5)}, question: config.question_5},
+          { id: 6, checkbox: {name: 'Checkbox6', isChecked: userChoices.includes(6)}, question: config.question_6},
+          { id: 7, checkbox: {name: 'Checkbox7', isChecked: userChoices.includes(7)}, question: config.question_7},
+          { id: 8, checkbox: {name: 'Checkbox8', isChecked: userChoices.includes(8)}, question: config.question_8},
+          { id: 9, checkbox: {name: 'Checkbox9', isChecked: userChoices.includes(9)}, question: config.question_9}
+        ]);
+        isCompMounted.current = true;
+      });      
     }
   }, [context, config, currentUser]);
 
+  useEffect(() => {
+    if(isCompMounted.current){
+      invoke('saveUserOutputs', choices.filter(it => it.checkbox.isChecked).map(it => it.id));
+    }
+  }, [choices]);
+
   const updateCheckboxValue = (id, val) => {
-    setChoices(items => items.map(item => item.id == id ? {...item, checkbox: {...item.checkbox, isChecked: val}} : item));
+     setChoices(items => items.map(item => item.id == id ? {...item, checkbox: {...item.checkbox, isChecked: val}} : item));
   }
   
-  const clearCheckboxesValue = () => {
-    setChoices(items => items.map(item => ({...item, checkbox: {...item.checkbox, isChecked: false}})));
+  const updateCheckboxValueAndClearOthers = (id, val) => {
+    setChoices(items => items.map(item => item.id == id ? {...item, checkbox: {...item.checkbox, isChecked: val}} : {...item, checkbox: {...item.checkbox, isChecked: false}}));
   }
 
   const onSelectCheckboxChange = (event) => {
     if(config.isMultiple === "false") {
-      clearCheckboxesValue();
-    }
-    updateCheckboxValue(event.target.id, event.target.checked);
+      updateCheckboxValueAndClearOthers(event.target.id, event.target.checked);
+    } else if (config.isMultiple === "true") {
+      updateCheckboxValue(event.target.id, event.target.checked);
+    }   
   }
   
   return (
