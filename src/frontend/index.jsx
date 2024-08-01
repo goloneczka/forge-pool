@@ -37,40 +37,49 @@ const App = () => {
   const [currentUser, setCurrentUser] = useState(undefined);
   const config = useConfig() || defaultConfig;
   const [choices, setChoices] = useState([
-    { id: 0, checkbox: {name: 'Checkbox0', isChecked: false}, question: ''},
-    { id: 1, checkbox: {name: 'Checkbox1', isChecked: false}, question: ''},
-    { id: 2, checkbox: {name: 'Checkbox2', isChecked: false}, question: ''},
-    { id: 3, checkbox: {name: 'Checkbox3', isChecked: false}, question: ''},
-    { id: 4, checkbox: {name: 'Checkbox4', isChecked: false}, question: ''},
-    { id: 5, checkbox: {name: 'Checkbox5', isChecked: false}, question: ''},
-    { id: 6, checkbox: {name: 'Checkbox6', isChecked: false}, question: ''},
-    { id: 7, checkbox: {name: 'Checkbox7', isChecked: false}, question: ''},
-    { id: 8, checkbox: {name: 'Checkbox8', isChecked: false}, question: ''},
-    { id: 9, checkbox: {name: 'Checkbox9', isChecked: false}, question: ''}
+    { id: 0, checkbox: {name: 'Checkbox0', isChecked: false}, question: '', votes: 0},
+    { id: 1, checkbox: {name: 'Checkbox1', isChecked: false}, question: '', votes: 0},
+    { id: 2, checkbox: {name: 'Checkbox2', isChecked: false}, question: '', votes: 0},
+    { id: 3, checkbox: {name: 'Checkbox3', isChecked: false}, question: '', votes: 0},
+    { id: 4, checkbox: {name: 'Checkbox4', isChecked: false}, question: '', votes: 0},
+    { id: 5, checkbox: {name: 'Checkbox5', isChecked: false}, question: '', votes: 0},
+    { id: 6, checkbox: {name: 'Checkbox6', isChecked: false}, question: '', votes: 0},
+    { id: 7, checkbox: {name: 'Checkbox7', isChecked: false}, question: '', votes: 0},
+    { id: 8, checkbox: {name: 'Checkbox8', isChecked: false}, question: '', votes: 0},
+    { id: 9, checkbox: {name: 'Checkbox9', isChecked: false}, question: '', votes: 0}
   ]);
   const isCompMounted = useRef(false);
 
   useEffect(() => {
     view.getContext().then(setContext);
+    // INIT MOCK DATA
+    // invoke('initMockVotesData');
+    // DELETE MOCK DATA
+    // invoke('clearMockVoteskData');
+
     invoke('getCurrentUser').then(setCurrentUser);
   }, [view]);
 
   useEffect(() => {
     if(context !== undefined && currentUser !== undefined) {
       invoke('getUserOutputs').then(userChoices => {
-        setChoices(_ => [
-          { id: 0, checkbox: {name: 'Checkbox0', isChecked: userChoices.includes(0)}, question: config.question_0},
-          { id: 1, checkbox: {name: 'Checkbox1', isChecked: userChoices.includes(1)}, question: config.question_1},
-          { id: 2, checkbox: {name: 'Checkbox2', isChecked: userChoices.includes(2)}, question: config.question_2},
-          { id: 3, checkbox: {name: 'Checkbox3', isChecked: userChoices.includes(3)}, question: config.question_3},
-          { id: 4, checkbox: {name: 'Checkbox4', isChecked: userChoices.includes(4)}, question: config.question_4},
-          { id: 5, checkbox: {name: 'Checkbox5', isChecked: userChoices.includes(5)}, question: config.question_5},
-          { id: 6, checkbox: {name: 'Checkbox6', isChecked: userChoices.includes(6)}, question: config.question_6},
-          { id: 7, checkbox: {name: 'Checkbox7', isChecked: userChoices.includes(7)}, question: config.question_7},
-          { id: 8, checkbox: {name: 'Checkbox8', isChecked: userChoices.includes(8)}, question: config.question_8},
-          { id: 9, checkbox: {name: 'Checkbox9', isChecked: userChoices.includes(9)}, question: config.question_9}
-        ]);
-        isCompMounted.current = true;
+        invoke('getAllOutputs').then(allChoices => {
+          const votes = new Map([[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0]])
+          allChoices.map(it => {it.value.map(v => votes.set(v, votes.get(v)+1))});
+          setChoices(_ => [
+            { id: 0, checkbox: {name: 'Checkbox0', isChecked: userChoices.includes(0)}, question: config.question_0, votes: votes.get(0)},
+            { id: 1, checkbox: {name: 'Checkbox1', isChecked: userChoices.includes(1)}, question: config.question_1, votes: votes.get(1)},
+            { id: 2, checkbox: {name: 'Checkbox2', isChecked: userChoices.includes(2)}, question: config.question_2, votes: votes.get(2)},
+            { id: 3, checkbox: {name: 'Checkbox3', isChecked: userChoices.includes(3)}, question: config.question_3, votes: votes.get(3)},
+            { id: 4, checkbox: {name: 'Checkbox4', isChecked: userChoices.includes(4)}, question: config.question_4, votes: votes.get(4)},
+            { id: 5, checkbox: {name: 'Checkbox5', isChecked: userChoices.includes(5)}, question: config.question_5, votes: votes.get(5)},
+            { id: 6, checkbox: {name: 'Checkbox6', isChecked: userChoices.includes(6)}, question: config.question_6, votes: votes.get(6)},
+            { id: 7, checkbox: {name: 'Checkbox7', isChecked: userChoices.includes(7)}, question: config.question_7, votes: votes.get(7)},
+            { id: 8, checkbox: {name: 'Checkbox8', isChecked: userChoices.includes(8)}, question: config.question_8, votes: votes.get(8)},
+            { id: 9, checkbox: {name: 'Checkbox9', isChecked: userChoices.includes(9)}, question: config.question_9, votes: votes.get(9)}
+          ]);
+          isCompMounted.current = true;
+        });
       });      
     }
   }, [context, config, currentUser]);
@@ -82,11 +91,12 @@ const App = () => {
   }, [choices]);
 
   const updateCheckboxValue = (id, val) => {
-     setChoices(items => items.map(item => item.id == id ? {...item, checkbox: {...item.checkbox, isChecked: val}} : item));
+     setChoices(items => items.map(item => item.id == id ? {...item, votes: val ? item.votes+1 : item.votes-1, checkbox: {...item.checkbox, isChecked: val} } : item));
   }
   
   const updateCheckboxValueAndClearOthers = (id, val) => {
-    setChoices(items => items.map(item => item.id == id ? {...item, checkbox: {...item.checkbox, isChecked: val}} : {...item, checkbox: {...item.checkbox, isChecked: false}}));
+    setChoices(items => items.map(item => item.id == id ? {...item, votes: item.votes+1, checkbox: {...item.checkbox, isChecked: val}} :
+       {...item, votes: item.checkbox.isChecked ? item.votes-1 : item.votes ,checkbox: {...item.checkbox, isChecked: false}}));
   }
 
   const onSelectCheckboxChange = (event) => {
@@ -126,9 +136,9 @@ const App = () => {
                         isChecked={v.checkbox.isChecked}
                         onChange={onSelectCheckboxChange}> </Checkbox>
 
-                      <Box xcss={{ width: '50px', height: '20px',  backgroundColor: colorMap.get(i) }}> </Box>
+                      <Box xcss={{ width: Math.pow(Math.log(v.votes*1.2), 2) * 30 + 30, height: '20px',  backgroundColor: colorMap.get(i) }}> </Box>
                     </Inline>
-                    <Text >{i}</Text>
+                    <Text >{v.votes}</Text>
                   </Inline>
 
                 </Stack>
