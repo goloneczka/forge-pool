@@ -46,10 +46,11 @@ resolver.define('initMockVotesData', () => {
   storage.set('userChoices-TEST-4' , [0, 1, 2]);
   storage.set('userChoices-TEST-5' , [0, 1]);
   storage.set('userChoices-TEST-6' , [0, 2]);
-  storage.set('userChoices-TEST-7' , [0]);
-  storage.set('userChoices-TEST-8' , [0]);
+  storage.set('userChoices-TEST-7' , [0, 2]);
+  storage.set('userChoices-TEST-8' , [0, 2]);
   storage.set('userChoices-TEST-9' , [2, 1]);
   storage.set('userChoices-TEST-10' , [0, 2]);
+  storage.set('userChoices-TEST-11' , [2]);
 });
 
 resolver.define('clearMockVoteskData', async() => {
@@ -63,5 +64,6 @@ resolver.define('clearMockVoteskData', async() => {
   storage.set('userChoices-TEST-8' , []);
   storage.set('userChoices-TEST-9' , []);
   storage.set('userChoices-TEST-10' , []);
+  storage.set('userChoices-TEST-11' , []);
 });
 export const handler = resolver.getDefinitions();

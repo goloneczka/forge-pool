@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef  } from 'react';
-import ForgeReconciler, { Textfield, Text, SectionMessage, DatePicker , useConfig, RadioGroup, Stack, xcss, Box, Heading, Checkbox, Inline } from '@forge/react';
+import ForgeReconciler, { Textfield, Text, SectionMessage, DatePicker , useConfig, RadioGroup, Stack, xcss, Box, Heading, Checkbox, Inline, Strong, Tag } from '@forge/react';
 import { view } from '@forge/bridge';
 import  colorMap  from './colors';
 import defaultConfig  from './config';
@@ -37,16 +37,16 @@ const App = () => {
   const [currentUser, setCurrentUser] = useState(undefined);
   const config = useConfig() || defaultConfig;
   const [choices, setChoices] = useState([
-    { id: 0, checkbox: {name: 'Checkbox0', isChecked: false}, question: '', votes: 0},
-    { id: 1, checkbox: {name: 'Checkbox1', isChecked: false}, question: '', votes: 0},
-    { id: 2, checkbox: {name: 'Checkbox2', isChecked: false}, question: '', votes: 0},
-    { id: 3, checkbox: {name: 'Checkbox3', isChecked: false}, question: '', votes: 0},
-    { id: 4, checkbox: {name: 'Checkbox4', isChecked: false}, question: '', votes: 0},
-    { id: 5, checkbox: {name: 'Checkbox5', isChecked: false}, question: '', votes: 0},
-    { id: 6, checkbox: {name: 'Checkbox6', isChecked: false}, question: '', votes: 0},
-    { id: 7, checkbox: {name: 'Checkbox7', isChecked: false}, question: '', votes: 0},
-    { id: 8, checkbox: {name: 'Checkbox8', isChecked: false}, question: '', votes: 0},
-    { id: 9, checkbox: {name: 'Checkbox9', isChecked: false}, question: '', votes: 0}
+    { id: 0, checkbox: {name: 'Checkbox0', isChecked: false}, question: '', votes: 0, isWinning: false},
+    { id: 1, checkbox: {name: 'Checkbox1', isChecked: false}, question: '', votes: 0, isWinning: false},
+    { id: 2, checkbox: {name: 'Checkbox2', isChecked: false}, question: '', votes: 0, isWinning: false},
+    { id: 3, checkbox: {name: 'Checkbox3', isChecked: false}, question: '', votes: 0, isWinning: false},
+    { id: 4, checkbox: {name: 'Checkbox4', isChecked: false}, question: '', votes: 0, isWinning: false},
+    { id: 5, checkbox: {name: 'Checkbox5', isChecked: false}, question: '', votes: 0, isWinning: false},
+    { id: 6, checkbox: {name: 'Checkbox6', isChecked: false}, question: '', votes: 0, isWinning: false},
+    { id: 7, checkbox: {name: 'Checkbox7', isChecked: false}, question: '', votes: 0, isWinning: false},
+    { id: 8, checkbox: {name: 'Checkbox8', isChecked: false}, question: '', votes: 0, isWinning: false},
+    { id: 9, checkbox: {name: 'Checkbox9', isChecked: false}, question: '', votes: 0, isWinning: false}
   ]);
   const isCompMounted = useRef(false);
 
@@ -66,17 +66,19 @@ const App = () => {
         invoke('getAllOutputs').then(allChoices => {
           const votes = new Map([[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0]])
           allChoices.map(it => {it.value.map(v => votes.set(v, votes.get(v)+1))});
+          const winningVotes = Math.max(...votes.values());
+
           setChoices(_ => [
-            { id: 0, checkbox: {name: 'Checkbox0', isChecked: userChoices.includes(0)}, question: config.question_0, votes: votes.get(0)},
-            { id: 1, checkbox: {name: 'Checkbox1', isChecked: userChoices.includes(1)}, question: config.question_1, votes: votes.get(1)},
-            { id: 2, checkbox: {name: 'Checkbox2', isChecked: userChoices.includes(2)}, question: config.question_2, votes: votes.get(2)},
-            { id: 3, checkbox: {name: 'Checkbox3', isChecked: userChoices.includes(3)}, question: config.question_3, votes: votes.get(3)},
-            { id: 4, checkbox: {name: 'Checkbox4', isChecked: userChoices.includes(4)}, question: config.question_4, votes: votes.get(4)},
-            { id: 5, checkbox: {name: 'Checkbox5', isChecked: userChoices.includes(5)}, question: config.question_5, votes: votes.get(5)},
-            { id: 6, checkbox: {name: 'Checkbox6', isChecked: userChoices.includes(6)}, question: config.question_6, votes: votes.get(6)},
-            { id: 7, checkbox: {name: 'Checkbox7', isChecked: userChoices.includes(7)}, question: config.question_7, votes: votes.get(7)},
-            { id: 8, checkbox: {name: 'Checkbox8', isChecked: userChoices.includes(8)}, question: config.question_8, votes: votes.get(8)},
-            { id: 9, checkbox: {name: 'Checkbox9', isChecked: userChoices.includes(9)}, question: config.question_9, votes: votes.get(9)}
+            { id: 0, checkbox: {name: 'Checkbox0', isChecked: userChoices.includes(0)}, question: config.question_0, votes: votes.get(0), isWinning: winningVotes === votes.get(0)},
+            { id: 1, checkbox: {name: 'Checkbox1', isChecked: userChoices.includes(1)}, question: config.question_1, votes: votes.get(1), isWinning: winningVotes === votes.get(1)},
+            { id: 2, checkbox: {name: 'Checkbox2', isChecked: userChoices.includes(2)}, question: config.question_2, votes: votes.get(2), isWinning: winningVotes === votes.get(2)},
+            { id: 3, checkbox: {name: 'Checkbox3', isChecked: userChoices.includes(3)}, question: config.question_3, votes: votes.get(3), isWinning: winningVotes === votes.get(3)},
+            { id: 4, checkbox: {name: 'Checkbox4', isChecked: userChoices.includes(4)}, question: config.question_4, votes: votes.get(4), isWinning: winningVotes === votes.get(4)},
+            { id: 5, checkbox: {name: 'Checkbox5', isChecked: userChoices.includes(5)}, question: config.question_5, votes: votes.get(5), isWinning: winningVotes === votes.get(5)},
+            { id: 6, checkbox: {name: 'Checkbox6', isChecked: userChoices.includes(6)}, question: config.question_6, votes: votes.get(6), isWinning: winningVotes === votes.get(6)},
+            { id: 7, checkbox: {name: 'Checkbox7', isChecked: userChoices.includes(7)}, question: config.question_7, votes: votes.get(7), isWinning: winningVotes === votes.get(7)},
+            { id: 8, checkbox: {name: 'Checkbox8', isChecked: userChoices.includes(8)}, question: config.question_8, votes: votes.get(8), isWinning: winningVotes === votes.get(8)},
+            { id: 9, checkbox: {name: 'Checkbox9', isChecked: userChoices.includes(9)}, question: config.question_9, votes: votes.get(9), isWinning: winningVotes === votes.get(9)}
           ]);
           isCompMounted.current = true;
         });
@@ -91,12 +93,42 @@ const App = () => {
   }, [choices]);
 
   const updateCheckboxValue = (id, val) => {
-     setChoices(items => items.map(item => item.id == id ? {...item, votes: val ? item.votes+1 : item.votes-1, checkbox: {...item.checkbox, isChecked: val} } : item));
+     const votes = new Map(choices.map(it => [it.id, it.votes]));
+     if(!isNaN(id)){
+      const numericId = parseInt(id)
+      votes.set(numericId, val ? votes.get(numericId) + 1 : votes.get(numericId) - 1);
+     }
+     const newWinningVotes = Math.max(...votes.values());
+
+     setChoices(items => items.map(item => item.id == id ? {
+        ...item,
+        votes: val ? item.votes+1 : item.votes-1,
+        checkbox: {...item.checkbox, isChecked: val},
+        isWinning: votes.get(item.id) === newWinningVotes
+      } : {...item, isWinning: votes.get(item.id) === newWinningVotes}
+    ));
   }
   
   const updateCheckboxValueAndClearOthers = (id, val) => {
-    setChoices(items => items.map(item => item.id == id ? {...item, votes: item.votes+1, checkbox: {...item.checkbox, isChecked: val}} :
-       {...item, votes: item.checkbox.isChecked ? item.votes-1 : item.votes ,checkbox: {...item.checkbox, isChecked: false}}));
+      const votes = new Map(choices.map(it => [it.id, it.votes]));
+      if(!isNaN(id)){
+        const numericId = parseInt(id)
+        votes.set(numericId, val ? votes.get(numericId) + 1 : votes.get(numericId) - 1);
+      }
+      const newWinningVotes = Math.max(...votes.values());
+
+      setChoices(items => items.map(item => item.id == id ? {
+          ...item,
+          votes: val ? item.votes+1 : item.votes-1,
+          checkbox: {...item.checkbox, isChecked: val},
+          isWinning: votes.get(item.id) === newWinningVotes
+        } : {
+          ...item,
+          isWinning: parseInt(votes.get(item.id)) - parseInt(item.checkbox.isChecked ? 1 : 0) === newWinningVotes,
+          votes: item.checkbox.isChecked ? item.votes-1 : item.votes,
+          checkbox: {...item.checkbox, isChecked: false}
+        }
+      ));
   }
 
   const onSelectCheckboxChange = (event) => {
@@ -109,8 +141,6 @@ const App = () => {
   
   return (
     <>
-      <Text>{config.name}, settings, multi: {config.isMultiple}, private: {config.isPrivate} </Text>
-
       {!config.name || !config.endTime || !choices[0].question || !choices[1].question ? (
         <SectionMessage title="You need to configure this macro" appearance="warning"> 
           <Text>
@@ -127,7 +157,11 @@ const App = () => {
 
               return (<React.Fragment key={i} >
                 <Stack>
-                  <Heading as="h5">{v.question}</Heading>
+                  <Inline space="space.200" alignBlock="baseline">
+                    <Heading as="h5">{v.question}</Heading>
+                    <Tag text={`${v.votes} votes`} color={v.isWinning ? "greenLight" : "standard"}> </Tag>                    
+                  </Inline>
+                  
 
                   <Inline alignBlock="baseline" spread='space-between'>
                     <Inline space="space.200" alignBlock="center">
@@ -138,12 +172,11 @@ const App = () => {
 
                       <Box xcss={{ width: Math.pow(Math.log(v.votes*1.2), 2) * 30 + 30, height: '20px',  backgroundColor: colorMap.get(i) }}> </Box>
                     </Inline>
-                    <Text >{v.votes}</Text>
                   </Inline>
 
                 </Stack>
               </React.Fragment>);
-            })};
+            })}
           </Stack>
       )}
     </>
