@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef  } from 'react';
-import ForgeReconciler, { Textfield, Text, SectionMessage, DatePicker , useConfig, RadioGroup, Stack, xcss, Box, Heading, Checkbox, Inline, Strong, Tag } from '@forge/react';
+import ForgeReconciler, { Textfield, Text, SectionMessage, DatePicker , useConfig, RadioGroup, Stack, xcss, Box, Heading, Checkbox, Inline, Strong, Tag, LinkButton, Button } from '@forge/react';
 import { view } from '@forge/bridge';
 import  colorMap  from './colors';
 import defaultConfig  from './config';
 import { invoke } from '@forge/bridge';
+import UsersVoteModal from './usersVoteModal';
 
 const Config = () => {
 
@@ -35,6 +36,7 @@ const Config = () => {
 const App = () => {
   const [context, setContext] = useState(undefined);
   const [currentUser, setCurrentUser] = useState(undefined);
+  const [isOpenModal, setOpenModal] = useState(false);
   const config = useConfig() || defaultConfig;
   const [choices, setChoices] = useState([
     { id: 0, checkbox: {name: 'Checkbox0', isChecked: false}, question: '', votes: 0, isWinning: false},
@@ -48,6 +50,7 @@ const App = () => {
     { id: 8, checkbox: {name: 'Checkbox8', isChecked: false}, question: '', votes: 0, isWinning: false},
     { id: 9, checkbox: {name: 'Checkbox9', isChecked: false}, question: '', votes: 0, isWinning: false}
   ]);
+  const [modalData, setModalData] = useState({});
   const isCompMounted = useRef(false);
 
   useEffect(() => {
@@ -92,43 +95,46 @@ const App = () => {
     }
   }, [choices]);
 
-  const updateCheckboxValue = (id, val) => {
-     const votes = new Map(choices.map(it => [it.id, it.votes]));
-     if(!isNaN(id)){
-      const numericId = parseInt(id)
-      votes.set(numericId, val ? votes.get(numericId) + 1 : votes.get(numericId) - 1);
-     }
-     const newWinningVotes = Math.max(...votes.values());
+  const onOpenModal = (choosenId) => {
+    invoke('getOutputVouters', choosenId).then(data => {
+      setModalData({userIds: data, question: choices[choosenId].question});
+      setOpenModal(true);
+    });
+  };
 
-     setChoices(items => items.map(item => item.id == id ? {
+  const closeModal = () => {
+    setOpenModal(false);
+  };
+
+  const updateCheckboxValue = (id, val) => {
+     let choicesShadow = choices.map(item => item.id == id ? {
         ...item,
         votes: val ? item.votes+1 : item.votes-1,
-        checkbox: {...item.checkbox, isChecked: val},
-        isWinning: votes.get(item.id) === newWinningVotes
-      } : {...item, isWinning: votes.get(item.id) === newWinningVotes}
-    ));
+        checkbox: {...item.checkbox, isChecked: val}
+      } : {...item}
+    );
+
+    const votes = new Map(choicesShadow.map(it => [it.id, it.votes]));
+    const newWinningVotes = Math.max(...votes.values());
+    choicesShadow = choicesShadow.map(it => ({...it, isWinning: votes.get(it.id) === newWinningVotes }));
+    setChoices(choicesShadow);
   }
   
   const updateCheckboxValueAndClearOthers = (id, val) => {
-      const votes = new Map(choices.map(it => [it.id, it.votes]));
-      if(!isNaN(id)){
-        const numericId = parseInt(id)
-        votes.set(numericId, val ? votes.get(numericId) + 1 : votes.get(numericId) - 1);
-      }
-      const newWinningVotes = Math.max(...votes.values());
-
-      setChoices(items => items.map(item => item.id == id ? {
+      let choicesShadow = choices.map(item => item.id == id ? {
           ...item,
           votes: val ? item.votes+1 : item.votes-1,
-          checkbox: {...item.checkbox, isChecked: val},
-          isWinning: votes.get(item.id) === newWinningVotes
+          checkbox: {...item.checkbox, isChecked: val}
         } : {
           ...item,
-          isWinning: parseInt(votes.get(item.id)) - parseInt(item.checkbox.isChecked ? 1 : 0) === newWinningVotes,
           votes: item.checkbox.isChecked ? item.votes-1 : item.votes,
           checkbox: {...item.checkbox, isChecked: false}
         }
-      ));
+      );
+      const votes = new Map(choicesShadow.map(it => [it.id, it.votes]));
+      const newWinningVotes = Math.max(...votes.values());
+      choicesShadow = choicesShadow.map(it => ({...it, isWinning: votes.get(it.id) === newWinningVotes }));
+      setChoices(choicesShadow);
   }
 
   const onSelectCheckboxChange = (event) => {
@@ -151,33 +157,40 @@ const App = () => {
       ) : (
         <Stack>
           <Heading as="h3">{config.name}</Heading>
+          {choices.map((v, i) => {
+            if (!v.question) return null;
 
-            {choices.map((v, i) => {
-              if (!v.question) return null;
-
-              return (<React.Fragment key={i} >
-                <Stack>
-                  <Inline space="space.200" alignBlock="baseline">
-                    <Heading as="h5">{v.question}</Heading>
-                    <Tag text={`${v.votes} votes`} color={v.isWinning ? "greenLight" : "standard"}> </Tag>                    
+            return (<React.Fragment key={i} >
+              <Stack>
+                <Inline space="space.200" alignBlock="baseline">
+                  <Heading as="h5">{v.question}</Heading>
+                  <Inline>
+                    <Tag text={`${v.votes} votes`} color={v.isWinning ? "greenLight" : "standard"}> </Tag>
+                    <Button onClick={() => onOpenModal(i)}
+                      spacing="none"
+                      iconBefore="person"
+                      appearance="subtle-link"
+                    > </Button>
                   </Inline>
-                  
+                </Inline>
+                
+                <Inline alignBlock="baseline" spread='space-between'>
+                  <Inline space="space.200" alignBlock="center">
+                    <Checkbox id={i}
+                      name={v.checkbox.name}
+                      isChecked={v.checkbox.isChecked}
+                      onChange={onSelectCheckboxChange}>
+                    </Checkbox>
 
-                  <Inline alignBlock="baseline" spread='space-between'>
-                    <Inline space="space.200" alignBlock="center">
-                      <Checkbox id={i}
-                        name={v.checkbox.name}
-                        isChecked={v.checkbox.isChecked}
-                        onChange={onSelectCheckboxChange}> </Checkbox>
-
-                      <Box xcss={{ width: Math.pow(Math.log(v.votes*1.2), 2) * 30 + 30, height: '20px',  backgroundColor: colorMap.get(i) }}> </Box>
-                    </Inline>
+                    <Box xcss={{ width: Math.pow(Math.log(v.votes*1.2), 2) * 30 + 30, height: '20px',  backgroundColor: colorMap.get(i) }}> </Box>
                   </Inline>
+                </Inline>
 
-                </Stack>
-              </React.Fragment>);
-            })}
-          </Stack>
+              </Stack>
+            </React.Fragment>);
+          })}
+          <UsersVoteModal isOpenModal={isOpenModal} closeModal={closeModal} modalData={modalData}/>
+        </Stack>
       )}
     </>
   );

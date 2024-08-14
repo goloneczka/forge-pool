@@ -34,8 +34,19 @@ resolver.define('getAllOutputs', async() => {
     wrappedResult = await storage.query().where('key', startsWith('userChoices-')).limit(20).cursor(wrappedResult.nextCursor).getMany();
     data.concat(wrappedResult.results);
   }
-  console.log(data);
   return data;
+});
+
+resolver.define('getOutputVouters', async(choosenId) => {
+  const idQuestion = JSON.stringify(choosenId.payload) === '{}' ? 0 : choosenId.payload;
+  let wrappedResult = await storage.query().limit(10).getMany();
+  const data = wrappedResult.results.filter(it => it.value.includes(idQuestion));
+  while(wrappedResult.nextCursor) {
+    wrappedResult = await storage.query().limit(20).cursor(wrappedResult.nextCursor).getMany();
+    data.concat(wrappedResult.results.filter(it => it.value.includes(idQuestion)));
+  }
+
+  return data.map(it => it.key.replace('userChoices-', ''))
 });
 
 
