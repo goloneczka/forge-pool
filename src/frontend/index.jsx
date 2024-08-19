@@ -1,20 +1,27 @@
 import React, { useEffect, useState, useRef  } from 'react';
-import ForgeReconciler, { Textfield, Text, SectionMessage, DatePicker , useConfig, RadioGroup, Stack, xcss, Box, Heading, Checkbox, Inline, Strong, Tag, LinkButton, Button } from '@forge/react';
+import ForgeReconciler, { Textfield, DatePicker, useConfig, RadioGroup, Stack, xcss, Box, Heading, Checkbox, Inline, Tag, Button } from '@forge/react';
 import { view } from '@forge/bridge';
 import  colorMap  from './colors';
 import defaultConfig  from './config';
 import { invoke } from '@forge/bridge';
 import UsersVoteModal from './usersVoteModal';
+import ConfigureMacro from './configureMacro';
+import FinishedPool from './finishedPool';
 
 const Config = () => {
+
+  const config = useConfig() || defaultConfig;
 
   return (
     <>
       <Textfield name="name" label="Questionare Name" defaultValue={defaultConfig.name} isRequired="true" />
-      <RadioGroup  name="isMultiple" label="Multiple Answers Enable" options={[{ value: 'true', label: 'True' }, {value: 'false', label: 'False' }]}
-                    defaultValue={defaultConfig.isMultiple} isRequired="true"/>
+      <RadioGroup  name="isMultiple" label="Multiple Answers Enable" 
+                    options={[{ value: 'true', label: 'True' }, {value: 'false', label: 'False' }]}
+                    defaultValue={defaultConfig.isMultiple}
+                    isRequired="true"/>
 
-      <RadioGroup name="isPrivate" label="Should Display User votes" options={[{ value: 'true', label: 'True' }, {value: 'false', label: 'False' }]}
+      <RadioGroup name="isPrivate" label="Should Display User votes" 
+                    options={[{ value: 'true', label: 'True' }, {value: 'false', label: 'False' }]}
                     defaultValue={defaultConfig.isPrivate} isRequired="true" />
 
       <DatePicker name="endTime" label="End Day" defaultValue={defaultConfig.endTime} isRequired="true" />
@@ -148,49 +155,49 @@ const App = () => {
   return (
     <>
       {!config.name || !config.endTime || !choices[0].question || !choices[1].question ? (
-        <SectionMessage title="You need to configure this macro" appearance="warning"> 
-          <Text>
-            While editing the page, select the macro, and click on the pencil icon
-            to display configuration options.
-          </Text>
-        </SectionMessage>
+        <ConfigureMacro />
       ) : (
-        <Stack>
-          <Heading as="h3">{config.name}</Heading>
-          {choices.map((v, i) => {
-            if (!v.question) return null;
+        new Date(config.endTime) > new Date() ? (
+            <Stack>
+              <Heading as="h3">{config.name}</Heading>
 
-            return (<React.Fragment key={i} >
-              <Stack>
-                <Inline space="space.200" alignBlock="baseline">
-                  <Heading as="h5">{v.question}</Heading>
-                  <Inline>
-                    <Tag text={`${v.votes} votes`} color={v.isWinning ? "greenLight" : "standard"}> </Tag>
-                    <Button onClick={() => onOpenModal(i)}
-                      spacing="none"
-                      iconBefore="person"
-                      appearance="subtle-link"
-                    > </Button>
-                  </Inline>
-                </Inline>
-                
-                <Inline alignBlock="baseline" spread='space-between'>
-                  <Inline space="space.200" alignBlock="center">
-                    <Checkbox id={i}
-                      name={v.checkbox.name}
-                      isChecked={v.checkbox.isChecked}
-                      onChange={onSelectCheckboxChange}>
-                    </Checkbox>
+              {choices.map((v, i) => {
+                if (!v.question) return null;
+                return (<React.Fragment key={i} >
+                  <Stack>
+                    <Inline space="space.200" alignBlock="baseline">
+                      <Heading as="h5">{v.question}</Heading>
+                      <Inline>
+                        <Tag text={`${v.votes} votes`} color={v.isWinning ? "greenLight" : "standard"}> </Tag>
+                        <Button onClick={() => onOpenModal(i)}
+                          spacing="compact"
+                          iconBefore="person"
+                          appearance="subtle"
+                          isDisabled={config.isPrivate == "false"}
+                        > </Button>
+                      </Inline>
+                    </Inline>
+                    
+                    <Inline alignBlock="baseline" spread='space-between'>
+                      <Inline space="space.200" alignBlock="center">
+                        <Checkbox id={i}
+                          name={v.checkbox.name}
+                          isChecked={v.checkbox.isChecked}
+                          onChange={onSelectCheckboxChange}>
+                        </Checkbox>
 
-                    <Box xcss={{ width: Math.pow(Math.log(v.votes*1.2), 2) * 30 + 30, height: '20px',  backgroundColor: colorMap.get(i) }}> </Box>
-                  </Inline>
-                </Inline>
+                        <Box xcss={{ width: Math.pow(Math.log(v.votes*1.2), 2) * 20 + 30, height: '20px',  backgroundColor: colorMap.get(i) }}> </Box>
+                      </Inline>
+                    </Inline>
 
-              </Stack>
-            </React.Fragment>);
-          })}
-          <UsersVoteModal isOpenModal={isOpenModal} closeModal={closeModal} modalData={modalData}/>
-        </Stack>
+                  </Stack>
+                </React.Fragment>);
+              })}
+              <UsersVoteModal isOpenModal={isOpenModal} closeModal={closeModal} modalData={modalData}/>
+            </Stack>
+        ) : (
+          <FinishedPool />
+        )
       )}
     </>
   );
