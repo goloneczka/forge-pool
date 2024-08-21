@@ -22,7 +22,6 @@ const FinishedPool = () => {
     useEffect(() => {
         if(context !== undefined) {
           invoke('getAllOutputs').then(allChoices => {
-              console.log(allChoices);
               const votes = new Map([[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0]])
               allChoices.map(it => {it.value.map(v => votes.set(v, votes.get(v)+1))});
               const winningVotes = Math.max(...votes.values());
