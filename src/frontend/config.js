@@ -2,6 +2,7 @@ const defaultConfig = {
   name: '',
   isMultiple: 'true',
   isPrivate: 'false',
+  isClearVotesOnEmptyValue: 'false',
   endTime: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()+1).toISOString(),
 
   question_0: '',

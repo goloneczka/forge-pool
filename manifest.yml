@@ -18,6 +18,11 @@ app:
   runtime:
     name: nodejs18.x
 permissions:
+  content:
+    scripts:
+      - unsafe-inline
+    styles:
+      - unsafe-inline
   scopes:
     - read:confluence-user
     - storage:app
