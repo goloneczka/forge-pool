@@ -61,7 +61,7 @@ resolver.define('clearVoutesOnEmptyQuestionValue', async(data) => {
   const userWithOutputs = await getAllOutputs(data);
   return await Promise.all(userWithOutputs.map(it => {
     const userResponsesWithoutEmptyAnswers = it.value.filter(n_it => !emptyQuestionIds.includes(n_it));
-    storage.set(it.key, userResponsesWithoutEmptyAnswers);
+    return storage.set(it.key, userResponsesWithoutEmptyAnswers);
   }))
 });
 
