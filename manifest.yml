@@ -7,12 +7,16 @@ modules:
         function: resolver
       title: macro-questionnaire
       config: true
+      icon: resource:static-resource;pool.jpg
+      description: Creates questionnaires for users and helps select the best ideas  
   function:
     - key: resolver
       handler: index.handler
 resources:
   - key: main
     path: src/frontend/index.jsx
+  - key: static-resource
+    path: static
 app:
   id: ari:cloud:ecosystem::app/ca21f5ca-5800-4583-9c24-3016ea9b7cf9
   runtime:

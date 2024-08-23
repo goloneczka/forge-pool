@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef  } from 'react';
-import {  useConfig, Stack, xcss, Box, Heading, Checkbox, Inline, Tag, Button } from '@forge/react';
+import {  useConfig, Stack, xcss, Box, Heading, Checkbox, Inline, Tag, Button, Spinner } from '@forge/react';
 import { view } from '@forge/bridge';
 import  colorMap  from './colors';
 import defaultConfig  from './config';
@@ -13,20 +13,9 @@ const OpenedPool = () => {
   const [currentUser, setCurrentUser] = useState(undefined);
   const [isOpenModal, setOpenModal] = useState(false);
   const config = useConfig() || defaultConfig;
-  const [choices, setChoices] = useState([
-    { id: 0, checkbox: {name: 'Checkbox0', isChecked: false}, question: '', votes: 0, isWinning: false},
-    { id: 1, checkbox: {name: 'Checkbox1', isChecked: false}, question: '', votes: 0, isWinning: false},
-    { id: 2, checkbox: {name: 'Checkbox2', isChecked: false}, question: '', votes: 0, isWinning: false},
-    { id: 3, checkbox: {name: 'Checkbox3', isChecked: false}, question: '', votes: 0, isWinning: false},
-    { id: 4, checkbox: {name: 'Checkbox4', isChecked: false}, question: '', votes: 0, isWinning: false},
-    { id: 5, checkbox: {name: 'Checkbox5', isChecked: false}, question: '', votes: 0, isWinning: false},
-    { id: 6, checkbox: {name: 'Checkbox6', isChecked: false}, question: '', votes: 0, isWinning: false},
-    { id: 7, checkbox: {name: 'Checkbox7', isChecked: false}, question: '', votes: 0, isWinning: false},
-    { id: 8, checkbox: {name: 'Checkbox8', isChecked: false}, question: '', votes: 0, isWinning: false},
-    { id: 9, checkbox: {name: 'Checkbox9', isChecked: false}, question: '', votes: 0, isWinning: false}
-  ]);
+  const [choices, setChoices] = useState([]);
   const [modalData, setModalData] = useState({});
-  const isCompMounted = useRef(false);
+  const [isCompMounted, setCompMounted] = useState(false);
 
   useEffect(() => {
     view.getContext().then(setContext);
@@ -49,14 +38,13 @@ const OpenedPool = () => {
   }, [context, config, currentUser]);
 
   useEffect(() => {
-    if(isCompMounted.current){
+    if(isCompMounted) {
       invoke('saveUserOutputs', choices.filter(it => it.checkbox.isChecked).map(it => it.id));
     }
   }, [choices]);
 
   const setChoicesOnInit = () => {
     Promise.all([invoke('getUserOutputs'), invoke('getAllOutputs')]).then(responses => {
-      console.log(responses[1]);
       const userChoices = JSON.stringify(responses[0]) === '{}' ? [] : responses[0];
       const votes = new Map([[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0]])
       responses[1].map(it => {it.value.map(v => votes.set(v, votes.get(v)+1))});
@@ -73,7 +61,7 @@ const OpenedPool = () => {
         { id: 8, checkbox: {name: 'Checkbox8', isChecked: userChoices.includes(8)}, question: config.question_8, votes: votes.get(8), isWinning: winningVotes === votes.get(8)},
         { id: 9, checkbox: {name: 'Checkbox9', isChecked: userChoices.includes(9)}, question: config.question_9, votes: votes.get(9), isWinning: winningVotes === votes.get(9)}
       ]);
-      isCompMounted.current = true;
+      setCompMounted(true);
     });
   };
 
@@ -129,41 +117,44 @@ const OpenedPool = () => {
   
   return (
     <>
+      
         <Stack>
             <Heading as="h3">{config.name}</Heading>
 
-            {choices.map((v, i) => {
-            if (!v.question) return null;
-            return (<React.Fragment key={i} >
-                <Stack>
-                <Inline space="space.200" alignBlock="baseline">
-                    <Heading as="h5">{v.question}</Heading>
-                    <Inline>
-                    <Tag text={`${v.votes} votes`} color={v.isWinning ? "greenLight" : "standard"}> </Tag>
-                    <Button onClick={() => onOpenModal(i)}
-                        spacing="compact"
-                        iconBefore="person"
-                        appearance="subtle"
-                        isDisabled={config.isPrivate == "false"}
-                    > </Button>
-                    </Inline>
-                </Inline>
-                
-                <Inline alignBlock="baseline" spread='space-between'>
-                    <Inline space="space.200" alignBlock="center">
-                    <Checkbox id={i}
-                        name={v.checkbox.name}
-                        isChecked={v.checkbox.isChecked}
-                        onChange={onSelectCheckboxChange}>
-                    </Checkbox>
+            {isCompMounted ? (
+              choices.map((v, i) => {
+              if (!v.question) return null;
+              return (<React.Fragment key={i} >
+                  <Stack>
+                  <Inline space="space.200" alignBlock="baseline">
+                      <Heading as="h5">{v.question}</Heading>
+                      <Inline>
+                      <Tag text={`${v.votes} votes`} color={v.isWinning && v.votes ? "greenLight" : "standard"}> </Tag>
+                      <Button onClick={() => onOpenModal(i)}
+                          spacing="compact"
+                          iconBefore="person"
+                          appearance="subtle"
+                          isDisabled={config.isPrivate == "false"}
+                      > </Button>
+                      </Inline>
+                  </Inline>
+                  
+                  <Inline alignBlock="baseline" spread='space-between'>
+                      <Inline space="space.200" alignBlock="center">
+                      <Checkbox id={i}
+                          name={v.checkbox.name}
+                          isChecked={v.checkbox.isChecked}
+                          onChange={onSelectCheckboxChange}>
+                      </Checkbox>
 
-                    <Box xcss={{ width: Math.pow(Math.log(v.votes*1.2), 2) * 20 + 30, height: '20px',  backgroundColor: colorMap.get(i) }}> </Box>
-                    </Inline>
-                </Inline>
+                      <Box xcss={{ width: Math.pow(Math.log(v.votes*1.2), 2) * 20 + 30, height: '20px',  backgroundColor: colorMap.get(i) }}> </Box>
+                      </Inline>
+                  </Inline>
 
-                </Stack>
-            </React.Fragment>);
-            })}
+                  </Stack>
+              </React.Fragment>);
+              })
+            ) : <Spinner size="medium" />}
             <UsersVoteModal isOpenModal={isOpenModal} closeModal={closeModal} modalData={modalData}/>
         </Stack>
     </>

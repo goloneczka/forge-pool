@@ -1,5 +1,5 @@
 import React, { useEffect, useState  } from 'react';
-import ForgeReconciler, { useConfig, RadioGroup, Stack, xcss, Box, Heading, Inline, Tag, Button, Text, Em } from '@forge/react';
+import ForgeReconciler, { useConfig, RadioGroup, Stack, xcss, Box, Heading, Inline, Tag, Button, Text, Em, Spinner  } from '@forge/react';
 import defaultConfig  from './config';
 import { invoke } from '@forge/bridge';
 import { view } from '@forge/bridge';
@@ -12,11 +12,13 @@ const FinishedPool = () => {
     const [choices, setChoices] = useState([]);
     const [isOpenModal, setOpenModal] = useState(false);
     const [modalData, setModalData] = useState({});
+    const [isCompMounted, setCompMounted] = useState(false);
 
     const config = useConfig() || defaultConfig;
 
     useEffect(() => {
         view.getContext().then(setContext);
+        setCompMounted(true);
       }, [view]);
 
     useEffect(() => {
@@ -61,32 +63,34 @@ const FinishedPool = () => {
                 <Text> <Em>completed questionnaire</Em></Text>
               </Inline>
 
-              {choices.map((v, i) => {
-                if (!v.question) return null;
-                return (<React.Fragment key={i} >
-                  <Stack>
-                    <Inline space="space.200" alignBlock="baseline">
-                      <Heading as="h5">{v.question}</Heading>
-                      <Inline>
-                        <Tag text={`${v.votes} votes`} color={v.isWinning ? "greenLight" : "standard"}> </Tag>
-                        <Button onClick={() => onOpenModal(i)}
-                          spacing="none"
-                          iconBefore="person"
-                          appearance="subtle"
-                          isDisabled={config.isPrivate == "false"}
-                        > </Button>
+              {isCompMounted ? (
+                choices.map((v, i) => {
+                  if (!v.question) return null;
+                  return (<React.Fragment key={i} >
+                    <Stack>
+                      <Inline space="space.200" alignBlock="baseline">
+                        <Heading as="h5">{v.question}</Heading>
+                        <Inline>
+                          <Tag text={`${v.votes} votes`} color={v.isWinning && v.votes ? "greenLight" : "standard"}> </Tag>
+                          <Button onClick={() => onOpenModal(i)}
+                            spacing="none"
+                            iconBefore="person"
+                            appearance="subtle"
+                            isDisabled={config.isPrivate == "false"}
+                          > </Button>
+                        </Inline>
                       </Inline>
-                    </Inline>
-                    
-                    <Inline alignBlock="baseline" spread='space-between'>
-                        <Box xcss={{ width: Math.pow(Math.log(v.votes*1.2), 2) * 20 + 30,
-                             height: '20px',
-                             backgroundColor: v.isWinning ? colorMap.get(i) : 'color.background.accent.gray.subtlest.pressed' }}> </Box>
-                    </Inline>
+                      
+                      <Inline alignBlock="baseline" spread='space-between'>
+                          <Box xcss={{ width: Math.pow(Math.log(v.votes*1.2), 2) * 20 + 30,
+                              height: '20px',
+                              backgroundColor: v.isWinning ? colorMap.get(i) : 'color.background.accent.gray.subtlest.pressed' }}> </Box>
+                      </Inline>
 
-                  </Stack>
-                </React.Fragment>);
-              })}
+                    </Stack>
+                  </React.Fragment>);
+                })
+              ) : (<Spinner size="medium" />)}
               <UsersVoteModal isOpenModal={isOpenModal} closeModal={closeModal} modalData={modalData}/>
             </Stack>
         </>
