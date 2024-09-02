@@ -25,9 +25,8 @@ const FinishedPool = () => {
         if(context !== undefined) {
           invoke('getAllOutputs').then(allChoices => {
               const votes = new Map([[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0]])
-              allChoices.map(it => {it.value.map(v => votes.set(v, votes.get(v)+1))});
+              allChoices.map(it => {it.value.outputs.map(v => votes.set(v, votes.get(v)+1))});
               const winningVotes = Math.max(...votes.values());
-
               setChoices(_ => [
               { id: 0, question: config.question_0, votes: votes.get(0), isWinning: winningVotes === votes.get(0)},
               { id: 1, question: config.question_1, votes: votes.get(1), isWinning: winningVotes === votes.get(1)},

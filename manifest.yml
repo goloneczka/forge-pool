@@ -8,10 +8,16 @@ modules:
       title: macro-questionnaire
       config: true
       icon: resource:static-resource;pool.jpg
-      description: Creates questionnaires for users and helps select the best ideas  
+      description: Creates questionnaires for users and helps select the best ideas
+  scheduledTrigger:
+    - key: example-scheduled-trigger
+      function: scheduled-gdpr-function
+      interval: week
   function:
     - key: resolver
       handler: index.handler
+    - key: scheduled-gdpr-function
+      handler: index.runGdpr
 resources:
   - key: main
     path: src/frontend/index.jsx
@@ -30,3 +36,4 @@ permissions:
   scopes:
     - read:confluence-user
     - storage:app
+    - report:personal-data
