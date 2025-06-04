@@ -26,7 +26,7 @@ resources:
 app:
   id: ari:cloud:ecosystem::app/ca21f5ca-5800-4583-9c24-3016ea9b7cf9
   runtime:
-    name: nodejs18.x
+    name: nodejs22.x
 permissions:
   content:
     scripts:
